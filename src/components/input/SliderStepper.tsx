@@ -3,7 +3,7 @@ import { View, Platform } from 'react-native';
 import { Text, Button, useTheme } from 'react-native-paper';
 import Slider from '@react-native-community/slider';
 import tw from 'twrnc';
-import { formatDuration } from '../utils/parseDuration';
+import { formatDuration } from '../../utils/parseDuration';
 
 interface Props {
   durationSeconds: number;
@@ -35,13 +35,15 @@ export default function SliderStepper({
 }: Props) {
   const theme = useTheme();
   const [localMinutes, setLocalMinutes] = useState(
-    durationSeconds > 0 ? Math.round(durationSeconds / 60) : 15
+    durationSeconds > 0 ? Math.round(durationSeconds / 60) : 10
   );
 
   // Sync from parent when changed externally (e.g. quick pick chips)
   useEffect(() => {
     if (durationSeconds > 0) {
       setLocalMinutes(Math.round(durationSeconds / 60));
+    } else {
+      setLocalMinutes(10);
     }
   }, [durationSeconds]);
 
@@ -110,7 +112,7 @@ export default function SliderStepper({
           maximumTrackTintColor={theme.colors.surfaceVariant}
           thumbTintColor={theme.colors.primary}
           disabled={disabled}
-          style={tw`h-10`}
+          style={[tw`h-10`, { transform: [{ scaleY: 2 }] }]}
         />
         {/* Min/max labels */}
         <View style={tw`flex-row justify-between px-1`}>
@@ -127,29 +129,6 @@ export default function SliderStepper({
             2 hrs
           </Text>
         </View>
-      </View>
-
-      {/* Step buttons */}
-      <View style={tw`flex-row items-center justify-center gap-4 mt-2`}>
-        <Button
-          mode="contained-tonal"
-          onPress={decrement}
-          disabled={disabled || localMinutes <= MIN_MINUTES}
-          icon="minus"
-          compact
-        >
-          {currentStep.label}
-        </Button>
-
-        <Button
-          mode="contained-tonal"
-          onPress={increment}
-          disabled={disabled || localMinutes >= MAX_MINUTES}
-          icon="plus"
-          compact
-        >
-          {currentStep.label}
-        </Button>
       </View>
     </View>
   );

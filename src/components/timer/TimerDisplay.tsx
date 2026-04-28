@@ -1,10 +1,10 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Text, Surface, IconButton, useTheme } from 'react-native-paper';
+import { Text, IconButton, useTheme } from 'react-native-paper';
 import tw from 'twrnc';
 import Svg, { Circle } from 'react-native-svg';
-import { TimerStatus } from '../hooks/useTimer';
-import { formatCountdown, formatDuration, getEndTime } from '../utils/parseDuration';
+import { TimerStatus } from '../../hooks/useTimer';
+import { formatCountdown, formatDuration, getEndTime } from '../../utils/parseDuration';
 
 interface Props {
   durationSeconds: number;
@@ -51,9 +51,8 @@ export default function TimerDisplay({
       : null;
 
   return (
-    <Surface
-      style={tw`mx-4 mt-2 mb-3 rounded-3xl items-center pt-4 pb-5 px-4`}
-      elevation={1}
+    <View
+      style={tw`mx-4 mt-2 mb-3 items-center pt-4 pb-5 px-4`}
     >
       {/* Progress ring with time */}
       <View style={tw`items-center justify-center`}>
@@ -93,7 +92,7 @@ export default function TimerDisplay({
           ]}
         >
           <Text
-            variant="displaySmall"
+            variant="displayMedium"
             style={[
               tw`font-light`,
               { color: theme.colors.onSurface, fontVariant: ['tabular-nums'] },
@@ -105,6 +104,15 @@ export default function TimerDisplay({
               ? formatCountdown(durationSeconds)
               : formatCountdown(remainingSeconds)}
           </Text>
+          {isPaused && (
+            <IconButton
+              icon="restart"
+              mode="contained-tonal"
+              size={28}
+              onPress={onReset}
+              style={{ position: 'absolute', bottom: 24 }}
+            />
+          )}
         </View>
       </View>
 
@@ -117,9 +125,9 @@ export default function TimerDisplay({
         {endTimeLabel ?? '--:--'}
       </Text>
 
-      {/* Controls — start always visible, disabled when no time set */}
+      {/* Controls */}
       <View style={tw`flex-row items-center justify-center gap-4 mt-3`}>
-        {(isIdle || isPaused) && (
+        {isIdle && (
           <>
             <IconButton
               icon="close"
@@ -144,32 +152,46 @@ export default function TimerDisplay({
           </>
         )}
         {isRunning && (
-          <IconButton
-            icon="pause"
-            mode="contained"
-            size={32}
-            onPress={onPause}
-            iconColor={theme.colors.onPrimary}
-            containerColor={theme.colors.primary}
-          />
+          <>
+            <IconButton
+              icon="stop"
+              mode="contained"
+              size={28}
+              onPress={onCancel}
+              iconColor="#FFFFFF"
+              containerColor="#D93025"
+            />
+            <IconButton
+              icon="pause"
+              mode="contained"
+              size={32}
+              onPress={onPause}
+              iconColor={theme.colors.onPrimary}
+              containerColor={theme.colors.primary}
+            />
+          </>
         )}
         {isPaused && (
-          <IconButton
-            icon="refresh"
-            mode="contained-tonal"
-            size={28}
-            onPress={onReset}
-          />
-        )}
-        {(isRunning || isPaused) && (
-          <IconButton
-            icon="stop"
-            mode="contained-tonal"
-            size={28}
-            onPress={onCancel}
-          />
+          <>
+            <IconButton
+              icon="stop"
+              mode="contained"
+              size={28}
+              onPress={onCancel}
+              iconColor="#FFFFFF"
+              containerColor="#D93025"
+            />
+            <IconButton
+              icon="play"
+              mode="contained"
+              size={32}
+              onPress={onStart}
+              iconColor={theme.colors.onPrimary}
+              containerColor={theme.colors.primary}
+            />
+          </>
         )}
       </View>
-    </Surface>
+    </View>
   );
 }

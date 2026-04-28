@@ -9,7 +9,7 @@ import {
   GestureResponderEvent,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import { formatDuration } from '../utils/parseDuration';
+import { formatDuration } from '../../../utils/parseDuration';
 import ScrollPicker from './ScrollPicker';
 
 interface Props {
@@ -275,6 +275,7 @@ export default function TimePickerMode({ onDurationChange, onStart, onClose, dis
 
             {/* Clock hand */}
             <View
+              pointerEvents="none"
               style={[
                 styles.hand,
                 {
@@ -291,6 +292,7 @@ export default function TimePickerMode({ onDurationChange, onStart, onClose, dis
 
             {/* Hand end dot */}
             <View
+              pointerEvents="none"
               style={[
                 styles.handDot,
                 {

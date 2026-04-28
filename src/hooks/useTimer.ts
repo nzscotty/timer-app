@@ -16,6 +16,8 @@ export interface TimerState {
 export interface TimerActions {
   /** Set the duration (only when idle or paused). Resets remaining to match. */
   setDuration: (seconds: number) => void;
+  /** Adjust duration by a delta (works in all states). */
+  adjustDuration: (deltaSeconds: number) => void;
   /** Start or resume the timer */
   start: () => void;
   /** Pause the timer */
@@ -60,6 +62,27 @@ export function useTimer(): [TimerState, TimerActions] {
       setDurationSeconds(clamped);
       if (status === 'idle') {
         setRemainingSeconds(clamped);
+      }
+    },
+    [status]
+  );
+
+  const adjustDuration = useCallback(
+    (deltaSeconds: number) => {
+      setDurationSeconds((prev) => {
+        const newDur = Math.max(0, prev + deltaSeconds);
+        return newDur;
+      });
+      if (status === 'idle') {
+        setRemainingSeconds((prev) => Math.max(0, prev + deltaSeconds));
+      } else if (status === 'paused') {
+        setRemainingSeconds((prev) => Math.max(0, prev + deltaSeconds));
+      } else if (status === 'running') {
+        // Shift the end timestamp
+        const delta = deltaSeconds * 1000;
+        endRef.current = Math.max(Date.now(), endRef.current + delta);
+        setEndTimestamp(endRef.current);
+        setRemainingSeconds((prev) => Math.max(0, prev + deltaSeconds));
       }
     },
     [status]
@@ -121,6 +144,6 @@ export function useTimer(): [TimerState, TimerActions] {
 
   return [
     { durationSeconds, remainingSeconds, status, endTimestamp },
-    { setDuration, start, pause, reset, cancel },
+    { setDuration, adjustDuration, start, pause, reset, cancel },
   ];
 }

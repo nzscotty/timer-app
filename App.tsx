@@ -1,26 +1,29 @@
 import React, { useState, useCallback } from 'react';
-import { ScrollView, useColorScheme } from 'react-native';
-import { PaperProvider } from 'react-native-paper';
+import { ScrollView } from 'react-native';
+import { PaperProvider, Appbar } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
-import { lightTheme, darkTheme } from './src/theme';
+import { useThemeToggle } from './src/hooks/useThemeToggle';
 import { useTimer } from './src/hooks/useTimer';
-import TimerDisplay from './src/components/TimerDisplay';
-import ModeSelector, { InputMode } from './src/components/ModeSelector';
-import BottomSheet from './src/components/BottomSheet';
-import DurationInput from './src/components/DurationInput';
-import SliderStepper from './src/components/SliderStepper';
-import TimePickerMode from './src/components/TimePickerMode';
-import QuickPickChips from './src/components/QuickPickChips';
+import { useTimerHistory } from './src/hooks/useTimerHistory';
+import TimerDisplay from './src/components/timer/TimerDisplay';
+import ModeSelector, { InputMode } from './src/components/timer/ModeSelector';
+import BottomSheet from './src/components/navigation/BottomSheet';
+import DurationInput from './src/components/input/DurationInput';
+import SliderStepper from './src/components/input/SliderStepper';
+import TimePickerMode from './src/components/input/time/TimePickerMode';
+import QuickPickChips from './src/components/timer/QuickPickChips';
+import TimerDrawer from './src/components/navigation/TimerDrawer';
 
 export default function App() {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
+  const { theme, icon: themeIcon, statusBarStyle, toggle: toggleTheme } = useThemeToggle();
 
   const [timerState, timerActions] = useTimer();
+  const [history, historyActions] = useTimerHistory();
   const [mode, setMode] = useState<InputMode>('slider');
   const [sheetOpenCount, setSheetOpenCount] = useState(0);
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   const isInteractive = timerState.status === 'idle';
 
@@ -35,6 +38,20 @@ export default function App() {
 
   const closeSheet = useCallback(() => setMode('slider'), []);
 
+  const handleStart = useCallback(() => {
+    if (timerState.durationSeconds > 0) {
+      historyActions.add(timerState.durationSeconds);
+    }
+    timerActions.start();
+  }, [timerState.durationSeconds, timerActions, historyActions]);
+
+  const handleDrawerSelect = useCallback(
+    (seconds: number) => {
+      timerActions.setDuration(seconds);
+    },
+    [timerActions]
+  );
+
   const handleModeChange = useCallback((m: InputMode) => {
     setMode(m);
     if (m === 'duration' || m === 'time') {
@@ -43,13 +60,20 @@ export default function App() {
   }, []);
 
   return (
-    <PaperProvider theme={theme}>
+    <PaperProvider theme={theme} settings={{ rippleEffectEnabled: true }}>
       <SafeAreaProvider>
         <SafeAreaView
           style={{ flex: 1, backgroundColor: theme.colors.background }}
-          edges={['top', 'left', 'right']}
+          edges={['left', 'right']}
         >
-          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+          <StatusBar style={statusBarStyle} />
+
+          {/* App bar */}
+          <Appbar.Header elevated={false} style={{ backgroundColor: theme.colors.background }}>
+            <Appbar.Action icon="menu" onPress={() => setDrawerVisible(true)} />
+            <Appbar.Content title="" />
+            <Appbar.Action icon={themeIcon} onPress={toggleTheme} />
+          </Appbar.Header>
 
           <ScrollView
             contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
@@ -61,7 +85,7 @@ export default function App() {
               remainingSeconds={timerState.remainingSeconds}
               status={timerState.status}
               endTimestamp={timerState.endTimestamp}
-              onStart={timerActions.start}
+              onStart={handleStart}
               onPause={timerActions.pause}
               onReset={timerActions.reset}
               onCancel={timerActions.cancel}
@@ -69,8 +93,11 @@ export default function App() {
 
             {/* Quick pick chips */}
             <QuickPickChips
-              onSelect={handleDurationChange}
-              disabled={!isInteractive}
+              currentSeconds={timerState.durationSeconds}
+              onSelect={(seconds) => {
+                const delta = seconds - timerState.durationSeconds;
+                timerActions.adjustDuration(delta);
+              }}
             />
             {/* Mode selector */}
             <ModeSelector value={mode} onChange={handleModeChange} />
@@ -93,7 +120,7 @@ export default function App() {
           >
             <DurationInput
               onDurationChange={handleDurationChange}
-              onStart={timerActions.start}
+              onStart={handleStart}
               onClose={closeSheet}
               disabled={!isInteractive}
               resetKey={sheetOpenCount}
@@ -108,11 +135,20 @@ export default function App() {
           >
             <TimePickerMode
               onDurationChange={handleDurationChange}
-              onStart={timerActions.start}
+              onStart={handleStart}
               onClose={closeSheet}
               disabled={!isInteractive}
             />
           </BottomSheet>
+
+          {/* Timer history drawer */}
+          <TimerDrawer
+            visible={drawerVisible}
+            onClose={() => setDrawerVisible(false)}
+            entries={history}
+            onSelect={handleDrawerSelect}
+            onRemove={historyActions.remove}
+          />
         </SafeAreaView>
       </SafeAreaProvider>
     </PaperProvider>

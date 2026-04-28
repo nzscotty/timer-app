@@ -36,28 +36,32 @@ export default function DurationInput({ onDurationChange, onStart, onClose, disa
   // Reset digits when resetKey changes (i.e. when sheet opens)
   useEffect(() => {
     setDigits('');
+    onDurationChange(0);
   }, [resetKey]);
 
+  const computeSeconds = (d: string) => digitsToDuration(d).totalSeconds;
   const { totalSeconds } = digitsToDuration(digits);
-
-  useEffect(() => {
-    if (totalSeconds > 0) {
-      onDurationChange(totalSeconds);
-    }
-  }, [totalSeconds]);
 
   const appendDigit = (d: string) => {
     if (disabled) return;
     setDigits((prev) => {
       const next = prev + d;
       const trimmed = next.replace(/^0+/, '') || '';
-      return trimmed.length <= MAX_DIGITS ? trimmed : prev;
+      if (trimmed.length <= MAX_DIGITS) {
+        onDurationChange(computeSeconds(trimmed));
+        return trimmed;
+      }
+      return prev;
     });
   };
 
   const backspace = () => {
     if (disabled) return;
-    setDigits((prev) => prev.slice(0, -1));
+    setDigits((prev) => {
+      const next = prev.slice(0, -1);
+      onDurationChange(computeSeconds(next));
+      return next;
+    });
   };
 
   const hasValue = digits.length > 0;
@@ -140,40 +144,57 @@ export default function DurationInput({ onDurationChange, onStart, onClose, disa
         ))}
       </View>
 
-      {/* Start button */}
-      <Pressable
-        onPress={() => {
-          if (totalSeconds > 0) {
-            onDurationChange(totalSeconds);
-            onStart();
-            onClose();
-          }
-        }}
-        disabled={totalSeconds === 0}
-        style={({ pressed }) => [
-          styles.startBtn,
-          {
-            backgroundColor: totalSeconds > 0
-              ? pressed
-                ? theme.colors.primaryContainer
-                : theme.colors.primary
-              : `${theme.colors.surfaceVariant}88`,
-          },
-        ]}
-      >
-        <Text
-          style={[
-            styles.startBtnText,
+      {/* Action buttons */}
+      <View style={styles.actionRow}>
+        <View style={{ width: 48 }} />
+        <Pressable
+          onPress={() => {
+            if (totalSeconds > 0) {
+              onDurationChange(totalSeconds);
+              onStart();
+              onClose();
+            }
+          }}
+          disabled={totalSeconds === 0}
+          style={({ pressed }) => [
+            styles.startBtn,
             {
-              color: totalSeconds > 0
-                ? theme.colors.onPrimary
-                : theme.colors.onSurfaceVariant,
+              backgroundColor: totalSeconds > 0
+                ? pressed
+                  ? theme.colors.primaryContainer
+                  : theme.colors.primary
+                : `${theme.colors.surfaceVariant}88`,
             },
           ]}
         >
-          Start
-        </Text>
-      </Pressable>
+          <Text
+            style={[
+              styles.startBtnText,
+              {
+                color: totalSeconds > 0
+                  ? theme.colors.onPrimary
+                  : theme.colors.onSurfaceVariant,
+              },
+            ]}
+          >
+            Start
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            setDigits('');
+            onDurationChange(0);
+          }}
+          style={({ pressed }) => [
+            styles.cancelBtn,
+            {
+              backgroundColor: pressed ? '#B71C1C' : '#D93025',
+            },
+          ]}
+        >
+          <Text style={styles.cancelBtnText}>✕</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -217,14 +238,31 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   startBtn: {
-    marginTop: 20,
-    alignSelf: 'center',
     paddingVertical: 14,
     paddingHorizontal: 48,
     borderRadius: 28,
   },
   startBtnText: {
     fontSize: 18,
+    fontWeight: '600',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 12,
+  },
+  cancelBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    color: '#FFFFFF',
+    fontSize: 22,
     fontWeight: '600',
   },
 });

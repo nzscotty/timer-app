@@ -51,7 +51,7 @@ export default function ScrollPicker({
     if (lastProgrammaticIndex.current !== selectedIndex && !isUserScroll.current) {
       lastProgrammaticIndex.current = selectedIndex;
       listRef.current?.scrollToOffset({
-        offset: selectedIndex, // * itemHeight,
+        offset: selectedIndex * itemHeight,
         animated: true,
       });
     }
@@ -61,7 +61,7 @@ export default function ScrollPicker({
   useEffect(() => {
     const timer = setTimeout(() => {
       listRef.current?.scrollToOffset({
-        offset: selectedIndex, // * itemHeight,
+        offset: selectedIndex * itemHeight,
         animated: false,
       });
     }, 50);
@@ -159,7 +159,7 @@ export default function ScrollPicker({
         renderItem={renderItem}
         keyExtractor={(_, i) => i.toString()}
         showsVerticalScrollIndicator={false}
-        snapToInterval={padCount * itemHeight}
+        snapToInterval={itemHeight}
         decelerationRate="fast"
         getItemLayout={getItemLayout}
         onScrollBeginDrag={handleScrollBegin}
