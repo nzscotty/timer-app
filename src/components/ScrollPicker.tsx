@@ -159,7 +159,7 @@ export default function ScrollPicker({
         renderItem={renderItem}
         keyExtractor={(_, i) => i.toString()}
         showsVerticalScrollIndicator={false}
-        snapToInterval={itemHeight}
+        snapToInterval={padCount * itemHeight}
         decelerationRate="fast"
         getItemLayout={getItemLayout}
         onScrollBeginDrag={handleScrollBegin}
