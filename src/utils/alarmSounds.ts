@@ -15,15 +15,16 @@ export const ALARM_SOUNDS: AlarmSound[] = [
     source: require("../../assets/audio/yo-tu-stars-looping-tune.mp3"),
   },
   {
-    id: "alarm",
-    label: "Ring",
-    source: require("../../assets/audio/alarm.mp3"),
-  },
-  {
     id: "yo-tu-i-wish",
     label: "I Wish",
     source: require("../../assets/audio/yo-tu-i-wish-looping-tune.mp3"),
   },
+  {
+    id: "alarm",
+    label: "Ring",
+    source: require("../../assets/audio/alarm.mp3"),
+  },
+  
 ];
 
 export const DEFAULT_SOUND_ID: AlarmSoundId = "alarm";

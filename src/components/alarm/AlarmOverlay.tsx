@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Modal, View, StyleSheet, Animated, Easing } from 'react-native';
-import { Text, Button, useTheme } from 'react-native-paper';
+import { Text, Button, Icon, useTheme } from 'react-native-paper';
 
 interface AlarmOverlayProps {
   visible: boolean;
@@ -45,15 +45,16 @@ export default function AlarmOverlay({ visible, onDismiss, onAddMinute }: AlarmO
       statusBarTranslucent
       onRequestClose={onDismiss}
     >
-      <View style={[styles.backdrop, { backgroundColor: 'rgba(0,0,0,0.85)' }]}>
-        <Text
-          variant="displaySmall"
-          style={[styles.title, { color: '#fff' }]}
-        >
+      <View style={[styles.backdrop, { backgroundColor: 'rgba(0,0,0,0.92)' }]}>
+        <Animated.View style={{ transform: [{ scale: pulse }], marginBottom: 8 }}>
+          <Icon source="bell-ring" size={72} color={theme.colors.error} />
+        </Animated.View>
+
+        <Text style={styles.title}>
           Time's up!
         </Text>
 
-        <Animated.View style={{ transform: [{ scale: pulse }] }}>
+        <Animated.View style={[styles.dismissWrapper, { transform: [{ scale: pulse }] }]}>
           <Button
             mode="contained"
             onPress={onDismiss}
@@ -70,10 +71,10 @@ export default function AlarmOverlay({ visible, onDismiss, onAddMinute }: AlarmO
         <Button
           mode="outlined"
           onPress={onAddMinute}
-          contentStyle={styles.buttonContent}
+          contentStyle={styles.addMinuteContent}
           labelStyle={styles.addMinuteLabel}
-          textColor="#fff"
-          style={[styles.button, styles.addMinuteButton]}
+          textColor="rgba(255,255,255,0.75)"
+          style={styles.addMinuteButton}
         >
           +1 Minute
         </Button>
@@ -87,11 +88,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 48,
+    gap: 32,
   },
   title: {
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontSize: 48,
+    fontWeight: '200',
+    letterSpacing: -1,
+    color: '#fff',
+  },
+  dismissWrapper: {
+    shadowColor: '#ff0000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    elevation: 16,
   },
   button: {
     borderRadius: 100,
@@ -107,10 +117,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   addMinuteButton: {
-    borderColor: 'rgba(255,255,255,0.6)',
+    borderRadius: 100,
+    minWidth: 180,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  addMinuteContent: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
   },
   addMinuteLabel: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
+    letterSpacing: 0.3,
   },
 });
