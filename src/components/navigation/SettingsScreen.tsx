@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, Animated, Pressable, Dimensions } from 'react-native';
-import { Appbar, Text, RadioButton, Divider, useTheme } from 'react-native-paper';
+import { Appbar, Text, RadioButton, Divider, Switch, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import { ALARM_SOUNDS, AlarmSoundId } from '../../utils/alarmSounds';
@@ -12,9 +12,11 @@ interface Props {
   onClose: () => void;
   alarmSoundId: AlarmSoundId;
   onAlarmSoundChange: (id: AlarmSoundId) => Promise<void>;
+  vibrateEnabled: boolean;
+  onVibrateChange: (enabled: boolean) => void;
 }
 
-export default function SettingsScreen({ visible, onClose, alarmSoundId, onAlarmSoundChange }: Props) {
+export default function SettingsScreen({ visible, onClose, alarmSoundId, onAlarmSoundChange, vibrateEnabled, onVibrateChange }: Props) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(false);
@@ -109,6 +111,24 @@ export default function SettingsScreen({ visible, onClose, alarmSoundId, onAlarm
             variant="labelLarge"
             style={[styles.sectionLabel, { color: theme.colors.primary }]}
           >
+            Vibration
+          </Text>
+          <Divider />
+          <View style={[styles.row, styles.switchRow]}>
+            <Text variant="bodyLarge" style={{ color: theme.colors.onSurface, flex: 1 }}>
+              Vibrate on alarm
+            </Text>
+            <Switch
+              value={vibrateEnabled}
+              onValueChange={onVibrateChange}
+              color={theme.colors.primary}
+            />
+          </View>
+
+          <Text
+            variant="labelLarge"
+            style={[styles.sectionLabel, { color: theme.colors.primary, paddingTop: 16 }]}
+          >
             Alarm Sound
           </Text>
           <Divider />
@@ -175,6 +195,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 4,
     paddingHorizontal: 8,
+  },
+  switchRow: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
   },
 });
 

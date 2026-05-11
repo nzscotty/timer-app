@@ -1,6 +1,10 @@
 import { useRef, useCallback, useEffect, useState } from 'react';
+import { Vibration } from 'react-native';
 import { AudioPlayer, createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import * as Notifications from 'expo-notifications';
+
+// 0ms delay, 500ms on, 500ms off — repeating
+const VIBRATION_PATTERN = [0, 500, 500];
 
 const CHANNEL_ID = 'alarm';
 const CATEGORY_ID = 'alarm';
@@ -14,12 +18,14 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export function useAlarm(soundSource: unknown) {
+export function useAlarm(soundSource: unknown, vibrateEnabled: boolean = true) {
   const soundRef = useRef<AudioPlayer | null>(null);
   const notifIdRef = useRef<string | null>(null);
   const [isAlarming, setIsAlarming] = useState(false);
   const soundSourceRef = useRef(soundSource);
+  const vibrateEnabledRef = useRef(vibrateEnabled);
   useEffect(() => { soundSourceRef.current = soundSource; }, [soundSource]);
+  useEffect(() => { vibrateEnabledRef.current = vibrateEnabled; }, [vibrateEnabled]);
 
   // Set up Android alarm channel and notification category with Dismiss action
   useEffect(() => {
@@ -48,6 +54,7 @@ export function useAlarm(soundSource: unknown) {
 
   const dismissAlarm = useCallback(async () => {
     setIsAlarming(false);
+    Vibration.cancel();
     if (soundRef.current) {
       try {
         soundRef.current.pause();
@@ -65,6 +72,7 @@ export function useAlarm(soundSource: unknown) {
 
   const triggerAlarm = useCallback(async () => {
     setIsAlarming(true);
+    if (vibrateEnabledRef.current) Vibration.vibrate(VIBRATION_PATTERN, true);
     // Play alarm sound on loop
     try {
       await setAudioModeAsync({
@@ -116,6 +124,7 @@ export function useAlarm(soundSource: unknown) {
   // Clean up sound on unmount
   useEffect(() => {
     return () => {
+      Vibration.cancel();
       try { soundRef.current?.pause(); soundRef.current?.remove(); } catch (_) {}
     };
   }, []);

@@ -8,6 +8,7 @@ import { useThemeToggle } from './src/hooks/useThemeToggle';
 import { useTimer } from './src/hooks/useTimer';
 import { useAlarm } from './src/hooks/useAlarm';
 import { useAlarmSound } from './src/hooks/useAlarmSound';
+import { useVibrateEnabled } from './src/hooks/useVibrateEnabled';
 import { useTimerHistory } from './src/hooks/useTimerHistory';
 import { getSoundById } from './src/utils/alarmSounds';
 import TimerDisplay from './src/components/timer/TimerDisplay';
@@ -25,7 +26,8 @@ export default function App() {
   const { theme, icon: themeIcon, statusBarStyle, toggle: toggleTheme } = useThemeToggle();
 
   const [alarmSoundId, setAlarmSoundId] = useAlarmSound();
-  const { triggerAlarm, dismissAlarm, isAlarming } = useAlarm(getSoundById(alarmSoundId).source);
+  const [vibrateEnabled, setVibrateEnabled] = useVibrateEnabled();
+  const { triggerAlarm, dismissAlarm, isAlarming } = useAlarm(getSoundById(alarmSoundId).source, vibrateEnabled);
   const [timerState, timerActions] = useTimer(triggerAlarm);
   const [history, historyActions] = useTimerHistory();
   const [mode, setMode] = useState<InputMode>('slider');
@@ -162,6 +164,8 @@ export default function App() {
             onClose={() => setSettingsVisible(false)}
             alarmSoundId={alarmSoundId}
             onAlarmSoundChange={setAlarmSoundId}
+            vibrateEnabled={vibrateEnabled}
+            onVibrateChange={setVibrateEnabled}
           />
 
           <AlarmOverlay visible={isAlarming} onDismiss={dismissAlarm} />
