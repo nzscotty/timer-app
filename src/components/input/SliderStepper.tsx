@@ -1,9 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Platform } from 'react-native';
-import { Text, Button, useTheme } from 'react-native-paper';
+import { View } from 'react-native';
+import { Text, useTheme } from 'react-native-paper';
 import Slider from '@react-native-community/slider';
 import tw from 'twrnc';
-import { formatDuration } from '../../utils/parseDuration';
 
 interface Props {
   durationSeconds: number;
@@ -11,125 +10,122 @@ interface Props {
   disabled?: boolean;
 }
 
-/**
- * Adaptive step sizing based on current duration.
- * Smaller durations get finer control, larger durations get coarser steps.
- */
-function getStepInfo(_minutes: number): { step: number; label: string } {
-  return { step: 5, label: '5 min' };
+function decompose(totalSeconds: number) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return { h, m, s };
 }
 
-/** Snap a minute value to the nearest increment boundary */
-function snapToStep(minutes: number): number {
-  const { step } = getStepInfo(minutes);
-  return Math.max(1, Math.round(minutes / step) * step);
+function pad(n: number) {
+  return String(n).padStart(2, '0');
 }
 
-const MIN_MINUTES = 5;
-const MAX_MINUTES = 120;
+interface SliderRowProps {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  disabled?: boolean;
+  primaryColor: string;
+  trackColor: string;
+  onChange: (v: number) => void;
+}
 
-export default function SliderStepper({
-  durationSeconds,
-  onDurationChange,
-  disabled,
-}: Props) {
-  const theme = useTheme();
-  const [localMinutes, setLocalMinutes] = useState(
-    durationSeconds > 0 ? Math.round(durationSeconds / 60) : 10
+function SliderRow({ label, value, min, max, disabled, primaryColor, trackColor, onChange }: SliderRowProps) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 16 }}>
+      <View style={tw`flex-row justify-between items-baseline px-1`}>
+        <Text variant="labelMedium" style={{ color: primaryColor, fontWeight: '600' }}>
+          {label}
+        </Text>
+        <Text variant="titleMedium" style={{ color: primaryColor, fontVariant: ['tabular-nums'] as any }}>
+          {pad(value)}
+        </Text>
+      </View>
+      <Slider
+        value={value}
+        minimumValue={min}
+        maximumValue={max}
+        step={1}
+        onValueChange={(v) => onChange(Math.round(v))}
+        onSlidingComplete={(v) => onChange(Math.round(v))}
+        minimumTrackTintColor={primaryColor}
+        maximumTrackTintColor={trackColor}
+        thumbTintColor={primaryColor}
+        disabled={disabled}
+        style={{ height: 40, transform: [{ scaleY: 1.5 }], marginVertical: -6 }}
+      />
+      <View style={tw`flex-row justify-between px-1`}>
+        <Text variant="labelSmall" style={{ color: trackColor }}>{pad(min)}</Text>
+        <Text variant="labelSmall" style={{ color: trackColor }}>{pad(max)}</Text>
+      </View>
+    </View>
   );
+}
 
-  // Sync from parent when changed externally (e.g. quick pick chips)
+export default function SliderStepper({ durationSeconds, onDurationChange, disabled }: Props) {
+  const theme = useTheme();
+  const [h, setH] = useState(0);
+  const [m, setM] = useState(0);
+  const [s, setS] = useState(0);
+
+  // Sync from parent
   useEffect(() => {
-    if (durationSeconds > 0) {
-      setLocalMinutes(Math.round(durationSeconds / 60));
-    } else {
-      setLocalMinutes(10);
-    }
+    const d = decompose(Math.max(0, durationSeconds));
+    setH(d.h);
+    setM(d.m);
+    setS(d.s);
   }, [durationSeconds]);
 
-  const currentStep = getStepInfo(localMinutes);
-
-  const updateMinutes = useCallback(
-    (mins: number) => {
-      const clamped = Math.max(MIN_MINUTES, Math.min(MAX_MINUTES, mins));
-      setLocalMinutes(clamped);
-      onDurationChange(clamped * 60);
+  const commit = useCallback(
+    (hours: number, mins: number, secs: number) => {
+      onDurationChange(hours * 3600 + mins * 60 + secs);
     },
     [onDurationChange]
   );
 
-  const handleSliderChange = useCallback(
-    (value: number) => {
-      const snapped = snapToStep(Math.round(value));
-      setLocalMinutes(snapped);
-    },
-    []
-  );
+  const handleSeconds = useCallback((v: number) => { setS(v); commit(h, m, v); }, [h, m, commit]);
+  const handleMinutes = useCallback((v: number) => { setM(v); commit(h, v, s); }, [h, s, commit]);
+  const handleHours   = useCallback((v: number) => { setH(v); commit(v, m, s); }, [m, s, commit]);
 
-  const handleSliderComplete = useCallback(
-    (value: number) => {
-      const snapped = snapToStep(Math.round(value));
-      updateMinutes(snapped);
-    },
-    [updateMinutes]
-  );
-
-  const decrement = () => {
-    const newVal = localMinutes - currentStep.step;
-    updateMinutes(snapToStep(Math.max(MIN_MINUTES, newVal)));
-  };
-
-  const increment = () => {
-    const newVal = localMinutes + currentStep.step;
-    updateMinutes(snapToStep(Math.min(MAX_MINUTES, newVal)));
-  };
+  const total = h * 3600 + m * 60 + s;
+  const totalLabel = [
+    h > 0 ? `${h}h` : null,
+    m > 0 || h > 0 ? `${pad(m)}m` : null,
+    `${pad(s)}s`,
+  ].filter(Boolean).join(' ');
 
   return (
-    <View style={tw`px-4`}>
-      {/* Large duration display */}
-      <View style={tw`items-center mb-4`}>
+    <View style={{ flex: 1 }}>
+      {/* Total display */}
+      <View style={tw`items-center py-2`}>
         <Text
-          variant="displayMedium"
-          style={[
-            tw`font-light`,
-            { color: theme.colors.onSurface, fontVariant: ['tabular-nums'] },
-          ]}
+          variant="headlineMedium"
+          style={[tw`font-light`, { color: theme.colors.onSurface, fontVariant: ['tabular-nums'] as any }]}
         >
-          {formatDuration(localMinutes * 60)}
+          {total === 0 ? '00s' : totalLabel}
         </Text>
       </View>
 
-      {/* Slider */}
-      <View style={tw`mb-2`}>
-        <Slider
-          value={localMinutes}
-          minimumValue={MIN_MINUTES}
-          maximumValue={MAX_MINUTES}
-          step={5}
-          onValueChange={handleSliderChange}
-          onSlidingComplete={handleSliderComplete}
-          minimumTrackTintColor={theme.colors.primary}
-          maximumTrackTintColor={theme.colors.surfaceVariant}
-          thumbTintColor={theme.colors.primary}
-          disabled={disabled}
-          style={[tw`h-10`, { transform: [{ scaleY: 2 }] }]}
-        />
-        {/* Min/max labels */}
-        <View style={tw`flex-row justify-between px-1`}>
-          <Text
-            variant="labelSmall"
-            style={{ color: theme.colors.onSurfaceVariant }}
-          >
-            5 min
-          </Text>
-          <Text
-            variant="labelSmall"
-            style={{ color: theme.colors.onSurfaceVariant }}
-          >
-            2 hrs
-          </Text>
-        </View>
-      </View>
+      <SliderRow label="Seconds" value={s} min={0} max={59} disabled={disabled}
+        primaryColor={theme.colors.primary} trackColor={theme.colors.surfaceVariant}
+        onChange={handleSeconds} />
+
+      <SliderRow label="Minutes" value={m} min={0} max={59} disabled={disabled}
+        primaryColor={theme.colors.primary} trackColor={theme.colors.surfaceVariant}
+        onChange={handleMinutes} />
+
+      <SliderRow label="Hours" value={h} min={0} max={23} disabled={disabled}
+        primaryColor={theme.colors.primary} trackColor={theme.colors.surfaceVariant}
+        onChange={handleHours} />
     </View>
   );
+}
+
+
+interface Props {
+  durationSeconds: number;
+  onDurationChange: (seconds: number) => void;
+  disabled?: boolean;
 }
