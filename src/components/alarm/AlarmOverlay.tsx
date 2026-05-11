@@ -5,9 +5,10 @@ import { Text, Button, useTheme } from 'react-native-paper';
 interface AlarmOverlayProps {
   visible: boolean;
   onDismiss: () => void;
+  onAddMinute: () => void;
 }
 
-export default function AlarmOverlay({ visible, onDismiss }: AlarmOverlayProps) {
+export default function AlarmOverlay({ visible, onDismiss, onAddMinute }: AlarmOverlayProps) {
   const theme = useTheme();
   const pulse = useRef(new Animated.Value(1)).current;
 
@@ -65,6 +66,17 @@ export default function AlarmOverlay({ visible, onDismiss }: AlarmOverlayProps) 
             Dismiss
           </Button>
         </Animated.View>
+
+        <Button
+          mode="outlined"
+          onPress={onAddMinute}
+          contentStyle={styles.buttonContent}
+          labelStyle={styles.addMinuteLabel}
+          textColor="#fff"
+          style={[styles.button, styles.addMinuteButton]}
+        >
+          +1 Minute
+        </Button>
       </View>
     </Modal>
   );
@@ -93,5 +105,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     letterSpacing: 0.5,
+  },
+  addMinuteButton: {
+    borderColor: 'rgba(255,255,255,0.6)',
+  },
+  addMinuteLabel: {
+    fontSize: 18,
+    fontWeight: '600',
   },
 });

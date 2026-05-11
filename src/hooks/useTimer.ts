@@ -20,6 +20,8 @@ export interface TimerActions {
   adjustDuration: (deltaSeconds: number) => void;
   /** Start or resume the timer */
   start: () => void;
+  /** Start the timer immediately with a specific duration, bypassing state update lag */
+  startWithDuration: (seconds: number) => void;
   /** Pause the timer */
   pause: () => void;
   /** Reset to idle with the current duration */
@@ -120,6 +122,29 @@ export function useTimer(onComplete?: () => void): [TimerState, TimerActions] {
     }, 200);
   }, [status, remainingSeconds, durationSeconds, clearTimer]);
 
+  const startWithDuration = useCallback((seconds: number) => {
+    const clamped = Math.max(0, Math.round(seconds));
+    if (clamped <= 0) return;
+    clearTimer();
+    setDurationSeconds(clamped);
+    const end = Date.now() + clamped * 1000;
+    endRef.current = end;
+    setEndTimestamp(end);
+    setRemainingSeconds(clamped);
+    setStatus('running');
+    intervalRef.current = setInterval(() => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.round((endRef.current - now) / 1000));
+      setRemainingSeconds(remaining);
+      if (remaining <= 0) {
+        clearTimer();
+        setStatus('idle');
+        setEndTimestamp(null);
+        onCompleteRef.current?.();
+      }
+    }, 200);
+  }, [clearTimer]);
+
   const pause = useCallback(() => {
     if (status !== 'running') return;
     clearTimer();
@@ -147,6 +172,6 @@ export function useTimer(onComplete?: () => void): [TimerState, TimerActions] {
 
   return [
     { durationSeconds, remainingSeconds, status, endTimestamp },
-    { setDuration, adjustDuration, start, pause, reset, cancel },
+    { setDuration, adjustDuration, start, startWithDuration, pause, reset, cancel },
   ];
 }

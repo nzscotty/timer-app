@@ -168,7 +168,14 @@ export default function App() {
             onVibrateChange={setVibrateEnabled}
           />
 
-          <AlarmOverlay visible={isAlarming} onDismiss={dismissAlarm} />
+          <AlarmOverlay
+            visible={isAlarming}
+            onDismiss={dismissAlarm}
+            onAddMinute={() => {
+              dismissAlarm();
+              timerActions.startWithDuration(60);
+            }}
+          />
         </SafeAreaView>
       </SafeAreaProvider>
     </PaperProvider>
