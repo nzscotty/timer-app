@@ -14,10 +14,12 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export function useAlarm() {
+export function useAlarm(soundSource: unknown) {
   const soundRef = useRef<AudioPlayer | null>(null);
   const notifIdRef = useRef<string | null>(null);
   const [isAlarming, setIsAlarming] = useState(false);
+  const soundSourceRef = useRef(soundSource);
+  useEffect(() => { soundSourceRef.current = soundSource; }, [soundSource]);
 
   // Set up Android alarm channel and notification category with Dismiss action
   useEffect(() => {
@@ -69,7 +71,7 @@ export function useAlarm() {
         playsInSilentMode: true,
         shouldPlayInBackground: true,
       });
-      const player = createAudioPlayer(require('../../assets/audio/alarm.mp3'));
+      const player = createAudioPlayer(soundSourceRef.current);
       player.loop = true;
       player.play();
       soundRef.current = player;

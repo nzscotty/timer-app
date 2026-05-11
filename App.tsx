@@ -7,7 +7,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useThemeToggle } from './src/hooks/useThemeToggle';
 import { useTimer } from './src/hooks/useTimer';
 import { useAlarm } from './src/hooks/useAlarm';
+import { useAlarmSound } from './src/hooks/useAlarmSound';
 import { useTimerHistory } from './src/hooks/useTimerHistory';
+import { getSoundById } from './src/utils/alarmSounds';
 import TimerDisplay from './src/components/timer/TimerDisplay';
 import ModeSelector, { InputMode } from './src/components/timer/ModeSelector';
 import BottomSheet from './src/components/navigation/BottomSheet';
@@ -22,7 +24,8 @@ import SettingsScreen from './src/components/navigation/SettingsScreen';
 export default function App() {
   const { theme, icon: themeIcon, statusBarStyle, toggle: toggleTheme } = useThemeToggle();
 
-  const { triggerAlarm, dismissAlarm, isAlarming } = useAlarm();
+  const [alarmSoundId, setAlarmSoundId] = useAlarmSound();
+  const { triggerAlarm, dismissAlarm, isAlarming } = useAlarm(getSoundById(alarmSoundId).source);
   const [timerState, timerActions] = useTimer(triggerAlarm);
   const [history, historyActions] = useTimerHistory();
   const [mode, setMode] = useState<InputMode>('slider');
@@ -154,7 +157,12 @@ export default function App() {
             onOpenSettings={() => setSettingsVisible(true)}
           />
 
-          <SettingsScreen visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
+          <SettingsScreen
+            visible={settingsVisible}
+            onClose={() => setSettingsVisible(false)}
+            alarmSoundId={alarmSoundId}
+            onAlarmSoundChange={setAlarmSoundId}
+          />
 
           <AlarmOverlay visible={isAlarming} onDismiss={dismissAlarm} />
         </SafeAreaView>

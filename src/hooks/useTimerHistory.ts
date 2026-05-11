@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { kvStore } from '../utils/kvStore';
 
-const STORAGE_KEY = '@timer_history';
+const STORAGE_KEY = 'timer_history';
 
 export interface TimerHistoryEntry {
   id: string;
@@ -18,19 +18,16 @@ export function useTimerHistory(): [TimerHistoryEntry[], TimerHistoryActions] {
 
   // Load from storage on mount
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
-      if (raw) {
-        try {
-          setEntries(JSON.parse(raw));
-        } catch {}
-      }
-    });
+    const raw = kvStore.get(STORAGE_KEY);
+    if (raw) {
+      try { setEntries(JSON.parse(raw)); } catch {}
+    }
   }, []);
 
   // Persist whenever entries change
   const persist = useCallback((next: TimerHistoryEntry[]) => {
     setEntries(next);
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    kvStore.set(STORAGE_KEY, JSON.stringify(next));
   }, []);
 
   const add = useCallback(
