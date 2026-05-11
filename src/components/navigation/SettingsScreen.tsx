@@ -104,7 +104,7 @@ export default function SettingsScreen({ visible, onClose, alarmSoundId, onAlarm
           <Appbar.Content title="Settings" />
         </Appbar.Header>
 
-        <View style={styles.body}>
+        <Pressable style={styles.body} onPress={stopPreview}>
           <Text
             variant="labelLarge"
             style={[styles.sectionLabel, { color: theme.colors.primary }]}
@@ -133,7 +133,7 @@ export default function SettingsScreen({ visible, onClose, alarmSoundId, onAlarm
               </Text>
             </Pressable>
           ))}
-        </View>
+        </Pressable>
       </Animated.View>
     </View>
   );
