@@ -73,7 +73,7 @@ export default function App() {
 
           {/* App bar */}
           <Appbar.Header elevated={false} style={{ backgroundColor: theme.colors.background }}>
-            <Appbar.Action icon="menu" onPress={() => setDrawerVisible(true)} />
+            <Appbar.Action icon="menu" onPress={() => { setDrawerVisible(true); }} />
             <Appbar.Content title="" />
             <Appbar.Action icon={themeIcon} onPress={toggleTheme} />
           </Appbar.Header>

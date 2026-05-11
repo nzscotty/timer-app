@@ -10,6 +10,7 @@ import { Divider, Text, Icon, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TimerHistoryEntry } from '../../hooks/useTimerHistory';
 import { formatDuration } from '../../utils/parseDuration';
+import SettingsScreen from './SettingsScreen';
 
 interface Props {
   visible: boolean;
@@ -32,12 +33,20 @@ export default function TimerDrawer({
   const insets = useSafeAreaInsets();
   const [deleteMode, setDeleteMode] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(-COLLAPSED_WIDTH)).current;
   const scrimAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
       setMounted(true);
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    if (mounted && visible) {
+      slideAnim.setValue(-COLLAPSED_WIDTH);
+      scrimAnim.setValue(0);
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: 0,
@@ -50,7 +59,7 @@ export default function TimerDrawer({
           useNativeDriver: true,
         }),
       ]).start();
-    } else {
+    } else if (mounted && !visible) {
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: -COLLAPSED_WIDTH,
@@ -64,7 +73,7 @@ export default function TimerDrawer({
         }),
       ]).start(() => setMounted(false));
     }
-  }, [visible]);
+  }, [mounted, visible]);
 
   const handleSelect = (seconds: number) => {
     setDeleteMode(null);
@@ -102,7 +111,7 @@ export default function TimerDrawer({
           },
         ]}
         >
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
             {entries.length === 0 && (
               <View style={styles.emptyRail}>
                 <Text
@@ -151,6 +160,20 @@ export default function TimerDrawer({
               </View>
             ))}
           </ScrollView>
+
+          {/* Settings button pinned to bottom */}
+          <Pressable
+            onPress={() => setSettingsVisible(true)}
+            android_ripple={{ color: theme.colors.primaryContainer, borderless: true }}
+            style={({ pressed }) => ([
+              styles.drawerItem,
+              { backgroundColor: pressed ? theme.colors.primaryContainer : 'transparent', marginBottom: insets.bottom + 4 },
+            ])}
+          >
+            <Icon source="cog-outline" size={24} color={theme.colors.onSurfaceVariant} />
+          </Pressable>
+
+          <SettingsScreen visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
         </Animated.View>
       </View>
   );
@@ -178,7 +201,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     alignItems: 'center',
-    paddingBottom: 16,
+    paddingBottom: 0,
   },
   emptyRail: {
     paddingVertical: 24,
