@@ -17,6 +17,7 @@ import TimePickerMode from './src/components/input/time/TimePickerMode';
 import QuickPickChips from './src/components/timer/QuickPickChips';
 import TimerDrawer from './src/components/navigation/TimerDrawer';
 import AlarmOverlay from './src/components/alarm/AlarmOverlay';
+import SettingsScreen from './src/components/navigation/SettingsScreen';
 
 export default function App() {
   const { theme, icon: themeIcon, statusBarStyle, toggle: toggleTheme } = useThemeToggle();
@@ -27,6 +28,7 @@ export default function App() {
   const [mode, setMode] = useState<InputMode>('slider');
   const [sheetOpenCount, setSheetOpenCount] = useState(0);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
 
   const isInteractive = timerState.status === 'idle';
 
@@ -149,7 +151,10 @@ export default function App() {
             entries={history}
             onSelect={handleDrawerSelect}
             onRemove={historyActions.remove}
+            onOpenSettings={() => setSettingsVisible(true)}
           />
+
+          <SettingsScreen visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
 
           <AlarmOverlay visible={isAlarming} onDismiss={dismissAlarm} />
         </SafeAreaView>

@@ -10,7 +10,6 @@ import { Divider, Text, Icon, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TimerHistoryEntry } from '../../hooks/useTimerHistory';
 import { formatDuration } from '../../utils/parseDuration';
-import SettingsScreen from './SettingsScreen';
 
 interface Props {
   visible: boolean;
@@ -18,6 +17,7 @@ interface Props {
   entries: TimerHistoryEntry[];
   onSelect: (durationSeconds: number) => void;
   onRemove: (id: string) => void;
+  onOpenSettings: () => void;
 }
 
 const COLLAPSED_WIDTH = 80;
@@ -28,12 +28,12 @@ export default function TimerDrawer({
   entries,
   onSelect,
   onRemove,
+  onOpenSettings,
 }: Props) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [deleteMode, setDeleteMode] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [settingsVisible, setSettingsVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(-COLLAPSED_WIDTH)).current;
   const scrimAnim = useRef(new Animated.Value(0)).current;
 
@@ -163,7 +163,7 @@ export default function TimerDrawer({
 
           {/* Settings button pinned to bottom */}
           <Pressable
-            onPress={() => setSettingsVisible(true)}
+            onPress={onOpenSettings}
             android_ripple={{ color: theme.colors.primaryContainer, borderless: true }}
             style={({ pressed }) => ([
               styles.drawerItem,
@@ -172,8 +172,6 @@ export default function TimerDrawer({
           >
             <Icon source="cog-outline" size={24} color={theme.colors.onSurfaceVariant} />
           </Pressable>
-
-          <SettingsScreen visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
         </Animated.View>
       </View>
   );
