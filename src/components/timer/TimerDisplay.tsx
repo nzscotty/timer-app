@@ -52,7 +52,7 @@ export default function TimerDisplay({
 
   return (
     <View
-      style={tw`mx-4 mt-2 mb-3 items-center pt-4 pb-5 px-4`}
+      style={tw`mx-4 mb-3 items-center pb-5 px-4`}
     >
       {/* Progress ring with time */}
       <View style={tw`items-center justify-center`}>

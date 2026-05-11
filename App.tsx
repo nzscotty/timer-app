@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { ScrollView } from 'react-native';
+import { View } from 'react-native';
 import { PaperProvider, Appbar } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import { useThemeToggle } from './src/hooks/useThemeToggle';
 import { useTimer } from './src/hooks/useTimer';
+import { useAlarm } from './src/hooks/useAlarm';
 import { useTimerHistory } from './src/hooks/useTimerHistory';
 import TimerDisplay from './src/components/timer/TimerDisplay';
 import ModeSelector, { InputMode } from './src/components/timer/ModeSelector';
@@ -15,11 +16,13 @@ import SliderStepper from './src/components/input/SliderStepper';
 import TimePickerMode from './src/components/input/time/TimePickerMode';
 import QuickPickChips from './src/components/timer/QuickPickChips';
 import TimerDrawer from './src/components/navigation/TimerDrawer';
+import AlarmOverlay from './src/components/alarm/AlarmOverlay';
 
 export default function App() {
   const { theme, icon: themeIcon, statusBarStyle, toggle: toggleTheme } = useThemeToggle();
 
-  const [timerState, timerActions] = useTimer();
+  const { triggerAlarm, dismissAlarm, isAlarming } = useAlarm();
+  const [timerState, timerActions] = useTimer(triggerAlarm);
   const [history, historyActions] = useTimerHistory();
   const [mode, setMode] = useState<InputMode>('slider');
   const [sheetOpenCount, setSheetOpenCount] = useState(0);
@@ -75,42 +78,40 @@ export default function App() {
             <Appbar.Action icon={themeIcon} onPress={toggleTheme} />
           </Appbar.Header>
 
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Always-visible timer display */}
-            <TimerDisplay
-              durationSeconds={timerState.durationSeconds}
-              remainingSeconds={timerState.remainingSeconds}
-              status={timerState.status}
-              endTimestamp={timerState.endTimestamp}
-              onStart={handleStart}
-              onPause={timerActions.pause}
-              onReset={timerActions.reset}
-              onCancel={timerActions.cancel}
-            />
+          {/* Always-visible top content — fixed, never scrolls */}
+          <TimerDisplay
+            durationSeconds={timerState.durationSeconds}
+            remainingSeconds={timerState.remainingSeconds}
+            status={timerState.status}
+            endTimestamp={timerState.endTimestamp}
+            onStart={handleStart}
+            onPause={timerActions.pause}
+            onReset={timerActions.reset}
+            onCancel={timerActions.cancel}
+          />
 
-            {/* Quick pick chips */}
-            <QuickPickChips
-              currentSeconds={timerState.durationSeconds}
-              onSelect={(seconds) => {
-                const delta = seconds - timerState.durationSeconds;
-                timerActions.adjustDuration(delta);
-              }}
-            />
-            {/* Mode selector */}
-            <ModeSelector value={mode} onChange={handleModeChange} />
+          {/* Quick pick chips */}
+          <QuickPickChips
+            currentSeconds={timerState.durationSeconds}
+            onSelect={(seconds) => {
+              const delta = seconds - timerState.durationSeconds;
+              timerActions.adjustDuration(delta);
+            }}
+          />
 
-            {/* Slider is inline, others are bottom sheets */}
-            {mode === 'slider' && (
+          {/* Mode selector */}
+          <ModeSelector value={mode} onChange={handleModeChange} />
+
+          {/* Sliders fill remaining vertical space */}
+          {mode === 'slider' && (
+            <View style={{ flex: 1, paddingBottom: 32 }}>
               <SliderStepper
                 durationSeconds={timerState.durationSeconds}
                 onDurationChange={handleDurationChange}
                 disabled={!isInteractive}
               />
-            )}
-          </ScrollView>
+            </View>
+          )}
 
           {/* Duration numpad bottom sheet */}
           <BottomSheet
@@ -149,6 +150,8 @@ export default function App() {
             onSelect={handleDrawerSelect}
             onRemove={historyActions.remove}
           />
+
+          <AlarmOverlay visible={isAlarming} onDismiss={dismissAlarm} />
         </SafeAreaView>
       </SafeAreaProvider>
     </PaperProvider>

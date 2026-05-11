@@ -28,7 +28,7 @@ export interface TimerActions {
   cancel: () => void;
 }
 
-export function useTimer(): [TimerState, TimerActions] {
+export function useTimer(onComplete?: () => void): [TimerState, TimerActions] {
   const [durationSeconds, setDurationSeconds] = useState(0);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [status, setStatus] = useState<TimerStatus>('idle');
@@ -36,6 +36,8 @@ export function useTimer(): [TimerState, TimerActions] {
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const endRef = useRef<number>(0);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
@@ -113,6 +115,7 @@ export function useTimer(): [TimerState, TimerActions] {
         clearTimer();
         setStatus('idle');
         setEndTimestamp(null);
+        onCompleteRef.current?.();
       }
     }, 200);
   }, [status, remainingSeconds, durationSeconds, clearTimer]);
