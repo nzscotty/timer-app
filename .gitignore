@@ -38,4 +38,7 @@ yarn-error.*
 
 # generated native folders
 /ios
+
+# Google Play service account key (keep out of version control)
+google-play-key.json
 /android
