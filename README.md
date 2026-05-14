@@ -122,37 +122,3 @@ Before each new release, bump `version` (user-visible) and `android.versionCode`
   "versionCode": 2
 }
 ```
-
-### Project Structure
-
-```
-timer-app/
-├── App.tsx                          # Root component — wires everything together
-├── src/
-│   ├── components/
-│   │   ├── TimerDisplay.tsx         # Always-visible countdown + progress ring
-│   │   ├── ModeSelector.tsx         # Segmented button: Duration | Slider | Time
-│   │   ├── DurationInput.tsx        # Mode 1: text-based duration entry
-│   │   ├── SliderStepper.tsx        # Mode 2: slider + adaptive step buttons
-│   │   ├── TimePickerMode.tsx       # Mode 3: target time picker (HH:MM AM/PM)
-│   │   └── QuickPickChips.tsx       # Preset duration chips
-│   ├── hooks/
-│   │   └── useTimer.ts             # Timer state machine (idle/running/paused)
-│   ├── utils/
-│   │   └── parseDuration.ts        # Duration parsing, formatting, end-time calc
-│   └── theme.ts                    # Material Design 3 light/dark color tokens
-├── app.json                        # Expo configuration
-└── package.json
-```
-
-## Platform Support
-
-| Platform | Status |
-|----------|--------|
-| Android  | ✅ Primary target |
-| iOS      | ✅ Supported |
-| Web      | ⚠️ Basic (Expo web) |
-
-## License
-
-MIT

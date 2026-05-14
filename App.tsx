@@ -3,6 +3,8 @@ import { View } from 'react-native';
 import { PaperProvider, Appbar } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { useThemeToggle } from './src/hooks/useThemeToggle';
 import { useTimer } from './src/hooks/useTimer';
@@ -23,8 +25,8 @@ import AlarmOverlay from './src/components/alarm/AlarmOverlay';
 import SettingsScreen from './src/components/navigation/SettingsScreen';
 
 export default function App() {
+  const [fontsLoaded] = useFonts(MaterialCommunityIcons.font);
   const { theme, icon: themeIcon, statusBarStyle, toggle: toggleTheme } = useThemeToggle();
-
   const [alarmSoundId, setAlarmSoundId] = useAlarmSound();
   const [vibrateEnabled, setVibrateEnabled] = useVibrateEnabled();
   const { triggerAlarm, dismissAlarm, isAlarming } = useAlarm(getSoundById(alarmSoundId).source, vibrateEnabled);
@@ -68,6 +70,8 @@ export default function App() {
       setSheetOpenCount((c) => c + 1);
     }
   }, []);
+
+  if (!fontsLoaded) return null;
 
   return (
     <PaperProvider theme={theme} settings={{ rippleEffectEnabled: true }}>
