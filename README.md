@@ -77,6 +77,52 @@ npx expo start --android
 npx expo start --ios
 ```
 
+## Building & Releasing (Android)
+
+Builds are handled by [EAS Build](https://docs.expo.dev/build/introduction/). You'll need an Expo account and the EAS CLI:
+
+```bash
+npm install -g eas-cli
+eas login
+```
+
+### Preview APK (side-loadable, for testing)
+
+```bash
+npm run build:preview
+```
+
+Produces a `.apk` you can install directly on any Android device. The download link is printed at the end of the build.
+
+### Production AAB (Play Store)
+
+```bash
+npm run build:production
+```
+
+Produces an `.aab` (Android App Bundle) ready for submission to the Play Store.
+
+> **Keystore:** EAS generates and securely stores your signing keystore on the first production build. Do not lose access to your Expo account.
+
+### Submit to Play Store
+
+```bash
+npm run submit:android
+```
+
+Requires a Google Play API service account key saved as `google-play-key.json` in the project root (already in `.gitignore`). Submits to the **internal testing** track by default — promote it to production from the Play Console.
+
+### Incrementing the version
+
+Before each new release, bump `version` (user-visible) and `android.versionCode` (must be a strictly increasing integer) in `app.json`:
+
+```json
+"version": "1.0.1",
+"android": {
+  "versionCode": 2
+}
+```
+
 ### Project Structure
 
 ```
